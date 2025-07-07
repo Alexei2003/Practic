@@ -1,0 +1,435 @@
+﻿prompt PL/SQL Developer Export User Objects for user SYS@ORCL
+prompt Created by Prinz Eugen on четверг, 20 июнь 2024 г.
+set define off
+spool db.log
+
+prompt
+prompt Creating table STD_CHILD
+prompt ========================
+prompt
+create table SYS.STD_CHILD
+(
+  id         NUMBER not null,
+  surname    NVARCHAR2(30) not null,
+  name       NVARCHAR2(30) not null,
+  patronymic NVARCHAR2(30),
+  birthday   DATE not null
+)
+tablespace SYSTEM
+  pctfree 10
+  pctused 40
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SYS.STD_CHILD
+  add constraint STD_CHILD_ID primary key (ID)
+  using index 
+  tablespace SYSTEM
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+
+prompt
+prompt Creating table STD_GROUP
+prompt ========================
+prompt
+create table SYS.STD_GROUP
+(
+  id   NUMBER not null,
+  name NVARCHAR2(30) not null
+)
+tablespace SYSTEM
+  pctfree 10
+  pctused 40
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SYS.STD_GROUP
+  add constraint STD_GROUP_ID primary key (ID)
+  using index 
+  tablespace SYSTEM
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+
+prompt
+prompt Creating table STD_CHILD_AND_GROUP
+prompt ==================================
+prompt
+create table SYS.STD_CHILD_AND_GROUP
+(
+  begin    DATE not null,
+  end      DATE,
+  group_id NUMBER not null,
+  child_id NUMBER not null
+)
+tablespace SYSTEM
+  pctfree 10
+  pctused 40
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SYS.STD_CHILD_AND_GROUP
+  add constraint STD_CG_CHILD_ID foreign key (CHILD_ID)
+  references SYS.STD_CHILD (ID) on delete cascade;
+alter table SYS.STD_CHILD_AND_GROUP
+  add constraint STD_CG_GROUP_ID foreign key (GROUP_ID)
+  references SYS.STD_GROUP (ID) on delete cascade;
+
+prompt
+prompt Creating table STD_DAY_TYPE
+prompt ===========================
+prompt
+create table SYS.STD_DAY_TYPE
+(
+  id   NUMBER not null,
+  type NVARCHAR2(1) not null
+)
+tablespace SYSTEM
+  pctfree 10
+  pctused 40
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SYS.STD_DAY_TYPE
+  add constraint STD_DAY_TYPE_ID primary key (ID)
+  using index 
+  tablespace SYSTEM
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+
+prompt
+prompt Creating table STD_DAY
+prompt ======================
+prompt
+create table SYS.STD_DAY
+(
+  child_id    NUMBER not null,
+  day_type_id NUMBER not null,
+  day_date    DATE not null
+)
+tablespace SYSTEM
+  pctfree 10
+  pctused 40
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SYS.STD_DAY
+  add constraint STD_D_CHILD_ID foreign key (CHILD_ID)
+  references SYS.STD_CHILD (ID) on delete cascade;
+alter table SYS.STD_DAY
+  add constraint STD_D_DAY_TYPE_ID foreign key (DAY_TYPE_ID)
+  references SYS.STD_DAY_TYPE (ID) on delete cascade;
+
+prompt
+prompt Creating table STD_EXEMPTION
+prompt ============================
+prompt
+create table SYS.STD_EXEMPTION
+(
+  id       NUMBER not null,
+  name     NVARCHAR2(100) not null,
+  discount NUMBER not null
+)
+tablespace SYSTEM
+  pctfree 10
+  pctused 40
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SYS.STD_EXEMPTION
+  add constraint STD_EXEMPTION_ID primary key (ID)
+  using index 
+  tablespace SYSTEM
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+
+prompt
+prompt Creating table STD_EXEMPTION_AND_CHILD
+prompt ======================================
+prompt
+create table SYS.STD_EXEMPTION_AND_CHILD
+(
+  begin        DATE not null,
+  end          DATE,
+  exemption_id NUMBER not null,
+  child_id     NUMBER not null
+)
+tablespace SYSTEM
+  pctfree 10
+  pctused 40
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SYS.STD_EXEMPTION_AND_CHILD
+  add constraint STD_EC_CHILD_ID foreign key (CHILD_ID)
+  references SYS.STD_CHILD (ID) on delete cascade;
+alter table SYS.STD_EXEMPTION_AND_CHILD
+  add constraint STD_EC_EXEMPTION_ID foreign key (EXEMPTION_ID)
+  references SYS.STD_EXEMPTION (ID) on delete cascade;
+
+prompt
+prompt Creating table STD_GENERAL_MONTH
+prompt ================================
+prompt
+create table SYS.STD_GENERAL_MONTH
+(
+  child_id NUMBER not null,
+  price    NUMBER not null,
+  balance  NUMBER not null,
+  begin    DATE not null
+)
+tablespace SYSTEM
+  pctfree 10
+  pctused 40
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SYS.STD_GENERAL_MONTH
+  add constraint STD_GM_CHILD_ID foreign key (CHILD_ID)
+  references SYS.STD_CHILD (ID) on delete cascade;
+
+prompt
+prompt Creating table STD_GROUP_TYPE
+prompt =============================
+prompt
+create table SYS.STD_GROUP_TYPE
+(
+  id        NUMBER not null,
+  name      NVARCHAR2(10) not null,
+  begin_age NUMBER not null,
+  end_age   NUMBER not null
+)
+tablespace SYSTEM
+  pctfree 10
+  pctused 40
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SYS.STD_GROUP_TYPE
+  add constraint STD_GROUP_TYPE_ID primary key (ID)
+  using index 
+  tablespace SYSTEM
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+
+prompt
+prompt Creating table STD_GROUP_AND_GROUP_TYPE
+prompt =======================================
+prompt
+create table SYS.STD_GROUP_AND_GROUP_TYPE
+(
+  begin         DATE not null,
+  end           DATE,
+  group_id      NUMBER not null,
+  group_type_id NUMBER not null
+)
+tablespace SYSTEM
+  pctfree 10
+  pctused 40
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SYS.STD_GROUP_AND_GROUP_TYPE
+  add constraint STD_GG_GROUP_ID foreign key (GROUP_ID)
+  references SYS.STD_GROUP (ID) on delete cascade;
+alter table SYS.STD_GROUP_AND_GROUP_TYPE
+  add constraint STD_GG_GROUP_TYPE_ID foreign key (GROUP_TYPE_ID)
+  references SYS.STD_GROUP_TYPE (ID) on delete cascade;
+
+prompt
+prompt Creating table STD_PAYER
+prompt ========================
+prompt
+create table SYS.STD_PAYER
+(
+  id               NUMBER not null,
+  surname          NVARCHAR2(30) not null,
+  name             NVARCHAR2(30) not null,
+  patronymic       NVARCHAR2(30),
+  telephone_number NVARCHAR2(12) not null,
+  email            NVARCHAR2(100)
+)
+tablespace SYSTEM
+  pctfree 10
+  pctused 40
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SYS.STD_PAYER
+  add constraint STD_PAYER_ID primary key (ID)
+  using index 
+  tablespace SYSTEM
+  pctfree 10
+  initrans 2
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+
+prompt
+prompt Creating table STD_PAYER_AND_CHILD
+prompt ==================================
+prompt
+create table SYS.STD_PAYER_AND_CHILD
+(
+  begin    DATE not null,
+  end      DATE,
+  payer_id NUMBER not null,
+  child_id NUMBER not null
+)
+tablespace SYSTEM
+  pctfree 10
+  pctused 40
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SYS.STD_PAYER_AND_CHILD
+  add constraint STD_PC_CHILD_ID foreign key (CHILD_ID)
+  references SYS.STD_CHILD (ID) on delete cascade;
+
+prompt
+prompt Creating table STD_RATE
+prompt =======================
+prompt
+create table SYS.STD_RATE
+(
+  price_day     NUMBER not null,
+  begin         DATE not null,
+  end           DATE,
+  group_type_id NUMBER not null
+)
+tablespace SYSTEM
+  pctfree 10
+  pctused 40
+  initrans 1
+  maxtrans 255
+  storage
+  (
+    initial 64K
+    next 1M
+    minextents 1
+    maxextents unlimited
+  );
+alter table SYS.STD_RATE
+  add constraint STD_R_GROUP_TYPE_ID foreign key (GROUP_TYPE_ID)
+  references SYS.STD_GROUP_TYPE (ID) on delete cascade;
+
+
+prompt Done
+spool off
+set define on

@@ -1,0 +1,79 @@
+-- Weekend
+CREATE OR REPLACE PROCEDURE STD_MARK_WEEKEND_DAY(p_day_date IN DATE) IS
+  count_record NUMBER;
+BEGIN
+  FOR child IN (SELECT ID FROM STD_CHILD INNER JOIN STD_CHILD_AND_GROUP ON STD_CHILD_AND_GROUP.CHILD_ID = STD_CHILD.ID
+    WHERE p_day_date BETWEEN STD_CHILD_AND_GROUP.BEGIN AND NVL(STD_CHILD_AND_GROUP.END, TO_DATE('31-12-9999', 'DD-MM-YYYY'))) LOOP
+    
+    SELECT COUNT(CHILD_ID) INTO count_record FROM STD_DAY WHERE STD_DAY.CHILD_ID = child.ID AND STD_DAY.DAY_DATE = p_day_date;
+    
+    IF count_record = 0 THEN
+      INSERT INTO STD_DAY(CHILD_ID,DAY_TYPE_ID,DAY_DATE)
+      VALUES(child.ID, 2 ,p_day_date);
+    END IF;
+    
+  END LOOP;
+END STD_MARK_WEEKEND_DAY;
+/
+
+-- Weekends
+CREATE OR REPLACE PROCEDURE STD_MARK_WEEKEND_DAY_BETWEEN_DATES(p_begin_day IN DATE, p_end_day IN DATE) IS
+  day DATE;
+BEGIN
+  day := p_begin_day;
+  
+  IF TO_CHAR(day, 'D') IN  (1,7) THEN
+    STD_MARK_WEEKEND_DAY(day);
+    
+    day := NEXT_DAY(day,'SUNDAY');
+    IF day < p_end_day  THEN
+      STD_MARK_WEEKEND_DAY(day);
+    END IF;
+  END IF;
+  
+  WHILE TRUE LOOP
+    day := NEXT_DAY(day,'SATURDAY');
+    IF day < p_end_day THEN
+      STD_MARK_WEEKEND_DAY(day);
+    ELSE
+      RETURN;   
+    END IF;
+
+    day := NEXT_DAY(day,'SUNDAY');
+    IF day < p_end_day  THEN
+      STD_MARK_WEEKEND_DAY(day);
+    ELSE
+      RETURN;
+    END IF;
+  END LOOP;
+END STD_MARK_WEEKEND_DAY_BETWEEN_DATES;
+/
+
+-- DAY RANDOM
+CREATE OR REPLACE  PROCEDURE STD_RANDOM_MARK_DAY_BETWEEN_DATES(p_begin_day IN DATE, p_end_day IN DATE) IS
+  day DATE;
+  count_record NUMBER;
+  random_type NUMBER;
+BEGIN
+  day := p_begin_day;
+  WHILE TRUE LOOP
+    IF day < p_end_day THEN
+      FOR child IN (SELECT ID FROM STD_CHILD INNER JOIN STD_CHILD_AND_GROUP ON STD_CHILD_AND_GROUP.CHILD_ID = STD_CHILD.ID
+      WHERE day BETWEEN STD_CHILD_AND_GROUP.BEGIN AND NVL(STD_CHILD_AND_GROUP.END, TO_DATE('31-12-9999', 'DD-MM-YYYY'))) LOOP
+
+        SELECT COUNT(CHILD_ID) INTO count_record FROM STD_DAY WHERE STD_DAY.CHILD_ID = child.ID AND STD_DAY.DAY_DATE = day;
+
+        IF count_record = 0 THEN
+          random_type := TRUNC(DBMS_RANDOM.VALUE(0, 2));
+          INSERT INTO STD_DAY(CHILD_ID,DAY_TYPE_ID,DAY_DATE)
+          VALUES(child.ID, random_type ,day);
+        END IF;
+
+      END LOOP;
+    ELSE
+      RETURN;
+    END IF;
+    day := day + 1;
+  END LOOP;
+END STD_RANDOM_MARK_DAY_BETWEEN_DATES;
+/    
